@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google-site-verification" content="google6f3aada47e203a33.html" />
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    .loader {
+      text-align: center;
+    }
+    .loader p {
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <p>Redirecting...</p>
+  </div>
+
+  <script>
+    const BIN_ID = "6877dbaf3052b733d10d94bc";
+    const API_KEY = "$2a$10$KXx5Yb2HF6z292WnEjQcY.P/WggIJ9sbwMXyhT9UmzFPtlyavGGlK";
+
+    // Corrected path extraction logic for GitHub Pages subfolders
+    const pathParts = window.location.pathname.split('/');
+    const code = pathParts[pathParts.length - 1].trim();
+
+    if (!code) {
+      document.body.innerHTML = '<p style="color:white;text-align:center">Invalid tracking code.</p>';
+      throw new Error("Missing or invalid code.");
+    }
+
+    const binUrl = `https://api.jsonbin.io/v3/b/${BIN_ID}/latest`;
+
+    fetch(binUrl, {
+      headers: {
+        'X-Master-Key': API_KEY
+      }
+    })
+    .then(res => res.json())
+    .then(json => {
+      const data = json.record;
+
+      if (!data[code]) {
+        document.body.innerHTML = '<p style="color:white;text-align:center">Link not found.</p>';
+        throw new Error("Code not in data");
+      }
+
+      const linkData = data[code];
+      const updatedClicks = (linkData.clicks || 0) + 1;
+      data[code].clicks = updatedClicks;
+
+      return fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': API_KEY
+        },
+        body: JSON.stringify(data)
+      }).then(() => {
+        setTimeout(() => {
+          window.location.href = linkData.original_link;
+        }, 200);
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      document.body.innerHTML = '<p style="color:white;text-align:center">Tracking failed or invalid code.</p>';
+    });
+  </script>
+</body>
+</html>
